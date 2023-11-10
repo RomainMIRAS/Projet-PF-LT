@@ -21,6 +21,18 @@ type stmt =
 
 #use "./Projet-PF-LT/anacomb.ml";;
 (* Exercice 1.1.2 Donner une grammaire décrivant le langage WHILEb- -. *)
+(** Grammaire
+
+  V  ::= a | b | c | d
+  B  ::= 1 | 0
+  E  ::= V | B
+  S  ::= skip | V := E | S ; S | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
+
+**)
+
+(*Exercice 1.1.3 La grammaire que vous avez écrite est très probablement récursive gauche dans le cas de
+la séquence de programmes. Modifiez-la pour remédier à ce problème*)
+
 let var_option (c:char) : var option = match c with
   | 'A' -> Some A
   | 'B' -> Some B
@@ -29,8 +41,8 @@ let var_option (c:char) : var option = match c with
   | _ -> None;;
 
 let bool_option (c:char) : bool option = match c with
-  | 'T' -> Some true
-  | 'F' -> Some false
+  | '1' -> Some true
+  | '0' -> Some false
   | _ -> None;;
 
 let rana_V l = terminal_res var_option l;;
