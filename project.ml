@@ -33,6 +33,15 @@ type stmt =
 (*Exercice 1.1.3 La grammaire que vous avez écrite est très probablement récursive gauche dans le cas de
 la séquence de programmes. Modifiez-la pour remédier à ce problème*)
 
+(** Grammaire 
+  
+    V  ::= a | b | c | d
+    B  ::= 1 | 0
+    E  ::= V | B
+    S  ::= skip | V := E | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
+    S’ ::= S | S ; S’
+**)
+
 let var_option (c:char) : var option = match c with
   | 'A' -> Some A
   | 'B' -> Some B
