@@ -38,9 +38,12 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
     V  ::= a | b | c | d
     B  ::= 1 | 0
     E  ::= V | B
-    S' ::= ε | ; S S'
-    S  ::= ε | V := E S'| i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ S' | w ’(’ V ’)’ ’{’ S ’}’ S'
-    
+    S' ::= ; S S' | ε
+    S  ::= V := E
+          | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
+          | w ’(’ V ’)’ ’{’ M ’}’ 
+    M  ::= S S'
+
 **)
 
 (* Sémantique naturelle (SN), dite aussi sémantique opérationnelle à grands pas *)
@@ -55,3 +58,38 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
   SN
   if [false] then [P] else [Q] => [Q]
 *)
+
+(* Partie principale *)
+
+(* Exercice 2.1.1 Implémenter un analyseur syntaxique en OCaml pour la grammaire obtenue du langage
+WHILEb- -. *)
+
+let var_option (c:char) : var option = match c with
+  | 'A' -> Some A
+  | 'B' -> Some B
+  | 'C' -> Some C
+  | 'D' -> Some D
+  | _ -> None;;
+
+let bool_option (c:char) : bool option = match c with
+  | '1' -> Some true
+  | '0' -> Some false
+  | _ -> None;;
+
+let is_var (c:char) : bool = match c with
+  | 'A' | 'B' | 'C' | 'D' -> true
+  | _ -> false;;
+
+let is_bool (c:char) : bool = match c with
+  | '1' | '0' -> true
+  | _ -> false;;
+
+let ana_V = fun l -> terminal_cond is_var;;
+
+let ana_B = fun l -> terminal_cond is_bool;;
+
+let ana_E = fun l -> ana_V -| ana_B ;;
+
+
+
+
