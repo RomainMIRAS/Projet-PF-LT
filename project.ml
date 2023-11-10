@@ -33,28 +33,25 @@ type stmt =
 (*Exercice 1.1.3 La grammaire que vous avez écrite est très probablement récursive gauche dans le cas de
 la séquence de programmes. Modifiez-la pour remédier à ce problème*)
 
-(** Grammaire 
-  
+(** Grammaire modifiée
+
     V  ::= a | b | c | d
     B  ::= 1 | 0
     E  ::= V | B
-    S  ::= ε | V := E | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
-    S’ ::= S | S ; S’
+    S' ::= ε | ; S S'
+    S  ::= ε | V := E S'| i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ S' | w ’(’ V ’)’ ’{’ S ’}’ S'
+    
 **)
 
-let var_option (c:char) : var option = match c with
-  | 'A' -> Some A
-  | 'B' -> Some B
-  | 'C' -> Some C
-  | 'D' -> Some D
-  | _ -> None;;
+(* Sémantique naturelle (SN), dite aussi sémantique opérationnelle à grands pas *)
 
-let bool_option (c:char) : bool option = match c with
-  | '1' -> Some true
-  | '0' -> Some false
-  | _ -> None;;
-
-let rana_V l = terminal_res var_option l;;
-
-let rana_B l = terminal_res bool_option l;;
-
+(* Exercice 1.2.1 Règles de SN pour un programme de la forme if expr then P else Q *)
+(*
+  if expr then P else Q
+  SN
+  if [expr] then [P] else [Q]
+  SN
+  if [true] then [P] else [Q] => [P]
+  SN
+  if [false] then [P] else [Q] => [Q]
+*)
