@@ -1,0 +1,33 @@
+(*1.2.1*)
+(*Sémantique naturelle de if expr then P else Q*)
+
+
+(*
+          Cas du else :
+
+  [[expr]] = false          Q
+        s1           s1 ---> s2
+ --------------------------------
+      if expr then P else Q
+  s1 ------------------------> s2
+
+
+        Cas du if :
+
+
+  [[expr]] = true           P
+        s1           s1 ---> s2
+  -------------------------------
+      if expr then P else Q
+  s1 --------------------------> s2  
+
+
+
+
+
+
+
+
+
+
+*)
