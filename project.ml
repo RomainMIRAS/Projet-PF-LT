@@ -26,7 +26,7 @@ type stmt =
   V  ::= a | b | c | d
   B  ::= 1 | 0
   E  ::= V | B
-  S  ::= skip | V := E | S ; S | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
+  S  ::= ε | V := E | S ; S | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
 
 **)
 
@@ -38,7 +38,7 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
     V  ::= a | b | c | d
     B  ::= 1 | 0
     E  ::= V | B
-    S  ::= skip | V := E | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
+    S  ::= ε | V := E | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
     S’ ::= S | S ; S’
 **)
 
