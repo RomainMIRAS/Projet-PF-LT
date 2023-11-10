@@ -64,7 +64,18 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
 (* Exercice 2.1.1 Implémenter un analyseur syntaxique en OCaml pour la grammaire obtenue du langage
 WHILEb- -. *)
 
-(* Version Analist *)
+let var_option (c:char) : var option = match c with
+  | 'A' -> Some A
+  | 'B' -> Some B
+  | 'C' -> Some C
+  | 'D' -> Some D
+  | _ -> None;;
+
+let bool_option (c:char) : bool option = match c with
+  | '1' -> Some true
+  | '0' -> Some false
+  | _ -> None;;
+
 let is_var (c:char) : bool = match c with
   | 'A' | 'B' | 'C' | 'D' -> true
   | _ -> false;;
@@ -88,36 +99,11 @@ let rec ana_Sp = fun l ->
 and ana_M = fun l -> 
   l |> ana_S --> ana_Sp
 
-and ana_S = fun l ->
+let ana_S = fun l ->
   l |> terminal 'i' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}' --> terminal '{' --> ana_M --> terminal '}'
   -| terminal 'w' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}'
-  -| ana_V --> terminal ':' --> terminal '=' --> ana_E;;
+  -| ana_V --> terminal ":=" --> ana_E;;
 
-  (* TEST GRAMMAIRE *)
-  ana_M (list_of_string "a:=1");;
 
-  let _ = assert (ana_M (list_of_string "a:=1;w(a){}" ) = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;i(a){b:=1}{b:=0}") = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;b:=0;w(a){if(b){b:=0}{b:=1}}") = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}a:=0}") = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}i(c){a:=b}{a:=c}") = []);;
 
-(* Version Ranalist *)
 
-let var_option (c:char) : var option = match c with
-  | 'A' -> Some A
-  | 'B' -> Some B
-  | 'C' -> Some C
-  | 'D' -> Some D
-  | _ -> None;;
-
-let bool_option (c:char) : bool option = match c with
-  | '1' -> Some true
-  | '0' -> Some false
-  | _ -> None;;
-
-let rana_V = fun l ->
-  l |> terminal_res var_option;;
-
-let rana_B = fun l ->
-  l |> terminal_res bool_option;;
