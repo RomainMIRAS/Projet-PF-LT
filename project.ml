@@ -41,7 +41,7 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
     S' ::= ; M | ε
     S  ::= V := E
           | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
-          | w ’(’ V ’)’ ’{’ M ’}’ 
+          | w ’(’ V ’)’ ’{’ M ’}’ | ε
     M  ::= S S'
 
 **)
@@ -66,7 +66,7 @@ WHILEb- -. *)
 
 (* Version Analist *)
 let is_var (c:char) : bool = match c with
-  | 'A' | 'B' | 'C' | 'D' -> true
+  | 'a' | 'b' | 'c' | 'd' -> true
   | _ -> false;;
 
 let is_bool (c:char) : bool = match c with
@@ -83,24 +83,39 @@ let ana_E = fun l ->
   l |> ana_V -| ana_B ;;
 
 let rec ana_Sp = fun l -> 
-  l |> terminal ';' --> ana_M -| epsilon
+  l |> (terminal ';' --> ana_M ) -| epsilon
 
 and ana_M = fun l -> 
   l |> ana_S --> ana_Sp
 
 and ana_S = fun l ->
-  l |> terminal 'i' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}' --> terminal '{' --> ana_M --> terminal '}'
-  -| terminal 'w' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}'
-  -| ana_V --> terminal ':' --> terminal '=' --> ana_E;;
+  l |> (terminal 'i' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}' --> terminal '{' --> ana_M --> terminal '}')
+  -| ( terminal 'w' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}')
+  -| (ana_V --> terminal ':' --> terminal '=' --> ana_E)
+  -| (epsilon);;
+
+  (** Grammaire modifiée
+
+    V  ::= a | b | c | d
+    B  ::= 1 | 0
+    E  ::= V | B
+    S' ::= ; M | ε
+    S  ::= V := E
+          | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
+          | w ’(’ V ’)’ ’{’ M ’}’ | ε
+    M  ::= S S'
+
+**)
 
   (* TEST GRAMMAIRE *)
-  ana_M (list_of_string "a:=1");;
+  ana_M (list_of_string ";;;");;
 
   let _ = assert (ana_M (list_of_string "a:=1;w(a){}" ) = []);;
   let _ = assert (ana_M (list_of_string "a:=1;i(a){b:=1}{b:=0}") = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;b:=0;w(a){if(b){b:=0}{b:=1}}") = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}a:=0}") = []);;
-  let _ = assert (ana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}i(c){a:=b}{a:=c}") = []);;
+  let _ = assert (ana_M (list_of_string "a:=1;b:=0;w(a){i(b){b:=0}{b:=1}}") = []);;
+  let _ = assert (ana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}{a:=0;a:=1}}") = []);;
+  let _ = assert (ana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}{i(c){a:=b}{a:=c}}") = []);;
+  let _ = assert (ana_M (list_of_string "i(a){d:=1}{;;;}") = []);;
 
 (* Version Ranalist *)
 
@@ -116,8 +131,35 @@ let bool_option (c:char) : bool option = match c with
   | '0' -> Some false
   | _ -> None;;
 
-let rana_V = fun l ->
+let rana_V = fun l -> 
   l |> terminal_res var_option;;
 
 let rana_B = fun l ->
   l |> terminal_res bool_option;;
+
+let rana_E = fun l ->
+  l |> (rana_V ++> fun x -> epsilon_res (Vexp x))
+  +| (rana_B ++> fun x -> epsilon_res (Bexp x));;
+
+let rec rana_Sp = fun l ->
+  l |> (terminal ';' -+> rana_M ) +| (epsilon_res Skip)
+
+and rana_M = fun l ->
+  l |> rana_S ++> fun x -> rana_Sp ++> fun y -> epsilon_res (Seq (x,y))
+
+and rana_S = fun l ->
+  l |> (rana_V ++> fun x ->
+                   terminal ':' --> terminal '=' -+>
+                   rana_E ++> fun y -> epsilon_res (Assign (x,y)))
+       +| (terminal 'i' -->
+             terminal '(' -+> rana_V ++> fun x -> terminal ')' -->
+             terminal '{' -+> rana_M ++> fun y -> terminal '}' -->
+             terminal '{' -+> rana_M ++> fun z -> terminal '}' -+> epsilon_res (If(x,y,z)))
+       +| (terminal 'w' -->
+             terminal '(' -+> rana_V ++> fun x -> terminal ')' -->
+             terminal '{' -+> rana_M ++> fun y -> terminal '}' -+> epsilon_res (While (x,y)))
+  +| (epsilon_res Skip);;
+
+  (* TEST GRAMMAIRE *)
+
+  rana_M (list_of_string ";a:=1" );;
