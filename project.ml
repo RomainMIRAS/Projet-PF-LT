@@ -120,10 +120,10 @@ and ana_S = fun l ->
 (* Version Ranalist *)
 
 let var_option (c:char) : var option = match c with
-  | 'A' -> Some A
-  | 'B' -> Some B
-  | 'C' -> Some C
-  | 'D' -> Some D
+  | 'a' -> Some A
+  | 'b' -> Some B
+  | 'c' -> Some C
+  | 'd' -> Some D
   | _ -> None;;
 
 let bool_option (c:char) : bool option = match c with
@@ -162,4 +162,4 @@ and rana_S = fun l ->
 
   (* TEST GRAMMAIRE *)
 
-  rana_M (list_of_string ";a:=1" );;
+  rana_M (list_of_string "a:=1;w(a){}" );;
