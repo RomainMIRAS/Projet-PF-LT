@@ -222,3 +222,28 @@ and rana_S = fun l ->
   let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}{a:=0;a:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (A, If (B, Assign (C, Bexp false), Seq (Assign (A, Bexp false), Assign (A, Bexp true)))))), []));;
   let _ = assert (rana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}{i(c){a:=b}{a:=c}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), Seq (Assign (C, Bexp false), If (B, Assign (C, Bexp true), If (C, Assign (A, Vexp B), Assign (A, Vexp C)))))), []));;
   let _ = assert (rana_M (list_of_string "i(a){d:=1}{;;;}") = (If (A, Assign (D, Bexp true), Seq (Skip, Seq (Skip, Seq (Skip, Skip)))), [])) ;;
+
+
+(*** PARTIE PARTIE ***)
+
+let rec clear = fun l ->
+  match l with
+  | [] -> []
+  | ' '::l | '\n'::l | '\t'::l -> clear l
+  | a::l -> a::(clear l)
+;;
+
+let parse_from_file (filename:string) : stmt =
+  let ic = open_in filename in
+  let n = in_channel_length ic in
+  let s = really_input_string ic n in
+  let l = list_of_string s in
+  let (p, _) = rana_M (clear l) in
+  p;;
+
+let parse_from_string (s:string) : stmt =
+  let l = list_of_string s in
+  let (p, _) = rana_M (clear l) in
+  p;;
+
+parse_from_file "./Projet-PF-LT/test.txt";;
