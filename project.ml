@@ -142,7 +142,7 @@ let rana_E = fun l ->
   +| (rana_B ++> fun x -> epsilon_res (Bexp x));;
 
 let rec rana_Sp = fun acc l ->
-  l |> (terminal ';' --> rana_M ++> fun x -> rana_Sp (Seq (acc, x)))
+  l |> (terminal ';' -+> rana_M ++> fun x -> rana_Sp (Seq (acc, x)))
   +| epsilon_res acc
 
 and rana_M = fun l ->
@@ -163,7 +163,9 @@ and rana_S = fun l ->
 
   (* TEST GRAMMAIRE *)
 
-  rana_M (list_of_string "a:=1;w(a){}" );;
-
   let _ = assert (rana_M (list_of_string "a:=1;w(a){}" ) = (Seq (Assign (A, Bexp true), While (A, Skip)), []));;
-  let _ = assert (rana_M (list_of_string "a:=1;w(a){}" ) = (Seq (Assign (A, Bexp true), Seq (While (A, Seq (Skip, Skip)), Skip)), []));;
+  let _ = assert (rana_M (list_of_string "a:=1;i(a){b:=1}{b:=0}") = (Seq (Assign (A, Bexp true), If (A, Assign (B, Bexp true), Assign (B, Bexp false))), []));;
+  let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){b:=0}{b:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (A, If (B, Assign (B, Bexp false), Assign (B, Bexp true))))), []));;
+  let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}{a:=0;a:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (A, If (B, Assign (C, Bexp false), Seq (Assign (A, Bexp false), Assign (A, Bexp true)))))), []));;
+  let _ = assert (rana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}{i(c){a:=b}{a:=c}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), Seq (Assign (C, Bexp false), If (B, Assign (C, Bexp true), If (C, Assign (A, Vexp B), Assign (A, Vexp C)))))), []));;
+  let _ = assert (rana_M (list_of_string "i(a){d:=1}{;;;}") = (If (A, Assign (D, Bexp true), Seq (Skip, Seq (Skip, Seq (Skip, Skip)))), [])) ;;
