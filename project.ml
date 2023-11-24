@@ -163,3 +163,6 @@ and rana_S = fun l ->
   (* TEST GRAMMAIRE *)
 
   rana_M (list_of_string "a:=1;w(a){}" );;
+
+  let _ = assert (rana_M (list_of_string "a:=1;w(a){}" ) = (Seq (Assign (A, Bexp true), While (A, Skip)), []));;
+  let _ = assert (rana_M (list_of_string "a:=1;w(a){}" ) = (Seq (Assign (A, Bexp true), Seq (While (A, Seq (Skip, Skip)), Skip)), []));;

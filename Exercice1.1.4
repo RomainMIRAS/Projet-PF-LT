@@ -1,4 +1,4 @@
-Grammaire de base :
+Grammaire de base 1.1.4 :
 
 C ::= ’0’ | ’1’
 V ::= ’a’ | ’b’ | ’c’ | ’d’
@@ -8,6 +8,8 @@ T ::= T ’.’ F | F
 F ::= ’!’ F | A | ’(’ E ’)'
 
 Grammaire sans récursivité à gauche :
+
+## Version Albin
 C  ::= ’0’ | ’1’
 V  ::= ’a’ | ’b’ | ’c’ | ’d’
 A  ::= C | V
@@ -16,3 +18,28 @@ Q  ::= ST | SE | epsilon
 SE ::= '+' ET
 ST ::= '.’ ET
 F  ::= ’!’ F | A | ’(’ ET ’)' Q
+
+## Version Romain
+C ::= ’0’ | ’1’
+V ::= ’a’ | ’b’ | ’c’ | ’d’
+A ::= C | V
+E ::= T E’
+E’ ::= ’+’ T E’ | ε
+T ::= F T’
+T’ ::= ’.’ F T’ | ε
+F ::= ’!’ F | A | ’(’ E ’)'
+
+## Union des deux versions
+C ::= ’0’ | ’1’
+V ::= ’a’ | ’b’ | ’c’ | ’d’
+A ::= C | V
+E ::= T E’
+E’ ::= ’+’ T E’ | ε
+T ::= F T’
+T’ ::= ’.’ F T’ | ε
+F ::= ’!’ F | A | ’(’ E ’)'
+S' ::= ; M | ε
+S ::= V := E
+    | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
+    | w ’(’ V ’)’ ’{’ M ’}’ | ε
+M ::= S S'
