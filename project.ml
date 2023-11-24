@@ -64,6 +64,24 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
 (* Exercice 2.1.1 Implémenter un analyseur syntaxique en OCaml pour la grammaire obtenue du langage
 WHILEb- -. *)
 
+  (** Grammaire Partie 2
+
+    B  ::= ’0’ | ’1’
+    V  ::= ’a’ | ’b’ | ’c’ | ’d’
+    E  ::= B | V
+    ET ::= F Q
+    Q  ::= ST | SE | epsilon
+    SE ::= '+' ET
+    ST ::= '.’ ET
+    F  ::= ’!’ F | E | ’(’ ET ’)' Q
+    S' ::= ';' M | ε
+    S ::= V ":=" ET
+        | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
+        | w ’(’ V ’)’ ’{’ M ’}’ | ε
+    M ::= S S'
+
+  **)
+
 (* Version Analist *)
 let is_var (c:char) : bool = match c with
   | 'a' | 'b' | 'c' | 'd' -> true
@@ -73,17 +91,37 @@ let is_bool (c:char) : bool = match c with
   | '1' | '0' -> true
   | _ -> false;;
 
-let ana_V = fun l -> 
-  l |> terminal_cond is_var;;
-
 let ana_B = fun l -> 
   l |> terminal_cond is_bool;;
+
+let ana_V = fun l -> 
+  l |> terminal_cond is_var;;
 
 let ana_E = fun l -> 
   l |> ana_V -| ana_B ;;
 
-let rec ana_Sp = fun l -> 
-  l |> (terminal ';' --> ana_M ) -| epsilon
+let rec ana_ET = fun l -> 
+  l |> ana_F --> ana_Q
+  
+and ana_Q = fun l ->
+  l |> ana_ST --> ana_Q
+  -| ana_SE --> ana_Q
+  -| epsilon
+
+and ana_SE = fun l ->
+  l |> terminal '+' --> ana_ET
+
+and ana_ST = fun l ->
+  l |> terminal '.' --> ana_ET
+
+and ana_F = fun l ->
+  l |> terminal '!' --> ana_F
+  -| ana_E
+  -| (terminal '(' --> ana_ET --> terminal ')' --> ana_Q)
+
+and ana_Sp = fun l ->
+  l |> terminal ';' --> ana_M
+  -| epsilon
 
 and ana_M = fun l -> 
   l |> ana_S --> ana_Sp
@@ -91,24 +129,11 @@ and ana_M = fun l ->
 and ana_S = fun l ->
   l |> (terminal 'i' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}' --> terminal '{' --> ana_M --> terminal '}')
   -| ( terminal 'w' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}')
-  -| (ana_V --> terminal ':' --> terminal '=' --> ana_E)
+  -| (ana_V --> terminal ':' --> terminal '=' --> ana_ET)
   -| (epsilon);;
 
-  (** Grammaire modifiée
-
-    V  ::= a | b | c | d
-    B  ::= 1 | 0
-    E  ::= V | B
-    S' ::= ; M | ε
-    S  ::= V := E
-          | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
-          | w ’(’ V ’)’ ’{’ M ’}’ | ε
-    M  ::= S S'
-
-**)
-
   (* TEST GRAMMAIRE *)
-  ana_M (list_of_string ";;;");;
+  ana_M (list_of_string "a:=!(a+b.c)");;
 
   let _ = assert (ana_M (list_of_string "a:=1;w(a){}" ) = []);;
   let _ = assert (ana_M (list_of_string "a:=1;i(a){b:=1}{b:=0}") = []);;
