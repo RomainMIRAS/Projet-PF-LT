@@ -19,7 +19,7 @@ type stmt =
   | If of var * stmt * stmt
   | While of var * stmt;;
 
-#use "./Projet-PF-LT/anacomb.ml";;
+#use "./anacomb.ml";;
 (* Exercice 1.1.2 Donner une grammaire décrivant le langage WHILEb- -. *)
 (** Grammaire
 
@@ -142,7 +142,7 @@ let rana_E = fun l ->
   +| (rana_B ++> fun x -> epsilon_res (Bexp x));;
 
 let rec rana_Sp = fun acc l ->
-  l |> (terminal ';' --> rana_M ++> fun x -> rana_Sp (Seq (acc, x)))
+  l |> (terminal ';' -+> rana_M ++> fun x -> rana_Sp (Seq (acc, x)))
   +| epsilon_res acc
 
 and rana_M = fun l ->
