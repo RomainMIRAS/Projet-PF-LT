@@ -19,7 +19,7 @@ type stmt =
   | If of var * stmt * stmt
   | While of var * stmt;;
 
-#use "./Projet-PF-LT/anacomb.ml";;
+#use "./anacomb.ml";;
 (* Exercice 1.1.2 Donner une grammaire décrivant le langage WHILEb- -. *)
 (** Grammaire
 
