@@ -1,24 +1,13 @@
-#use "./Projet-PF-LT/project.ml";;
+#use "./project.ml";;
 
 (*
   Fonction qui permet d'evaluer un statement *)
 
-let test_statment = parse_from_file "./Projet-PF-LT/test.txt";;
-
-type stmt =
-  | Skip
-  | Assign of var * exp
-  | Seq of stmt * stmt
-  | If of var * stmt * stmt
-  | While of var * stmt;;
-
-  type var = A | B | C | D ;;
-
-  type exp = Vexp of var | Bexp of bool | Bnot of exp | Band of exp * exp | Bor of exp * exp;;
+let test_statment = parse_from_file "./test.txt";;
 
 type state = {a : bool; b : bool; c : bool; d : bool};;
 
-let rec evalB expression state =
+let rec evalB expression state : bool =
   match expression with
   | Bexp b -> b
   | Vexp var -> (match var with
@@ -43,9 +32,9 @@ let rec evalS statement state =
   | Skip -> state
   | Assign (var, exp) -> update state var (evalB exp state)
   | Seq (s1, s2) -> evalS s2 (evalS s1 state)
-  | If (var, s1, s2) -> if (evalB Vexp(var) state) then evalS s1 state else evalS s2 state
-  | While (var, s) -> if (evalB Vexp(var) state) then evalS (While (exp, s)) (evalS s state) else state;;
+  | If (exp, s1, s2) -> if (evalB exp state) then evalS s1 state else evalS s2 state
+  | While (exp, s) -> if (evalB exp state) then evalS (While (exp, s)) (evalS s state) else state;;
 
-let state = {a = true; b = false; c = true; d = false};;
+let state = {a = true; b = false; c = true; d = true};;
 
 evalS test_statment state;;

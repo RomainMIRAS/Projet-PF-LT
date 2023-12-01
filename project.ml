@@ -16,17 +16,17 @@ type stmt =
   | Skip
   | Assign of var * exp
   | Seq of stmt * stmt
-  | If of var * stmt * stmt
-  | While of var * stmt;;
+  | If of exp * stmt * stmt
+  | While of exp * stmt;;
 
-#use "./Projet-PF-LT/anacomb.ml";;
+#use "./anacomb.ml";;
 (* Exercice 1.1.2 Donner une grammaire décrivant le langage WHILEb- -. *)
 (** Grammaire
 
   V  ::= a | b | c | d
   B  ::= 1 | 0
   E  ::= V | B
-  S  ::= ε | V := E | S ; S | i ’(’ V ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ V ’)’ ’{’ S ’}’
+  S  ::= ε | V := E | S ; S | i ’(’ E ’)’ ’{’ S ’}’ ’{’ S ’}’ | w ’(’ E ’)’ ’{’ S ’}’
 
 **)
 
@@ -61,11 +61,12 @@ la séquence de programmes. Modifiez-la pour remédier à ce problème*)
 
 (* Partie principale *)
 
-(* Exercice 2.1.1 Implémenter un analyseur syntaxique en OCaml pour la grammaire obtenue du langage
-WHILEb- -. *)
+(* Exercice 2 Implémenter un analyseur syntaxique en OCaml pour la grammaire obtenue du langage
+WHILEb. *)
 
   (** Grammaire Partie 2
-
+      
+    // PARTIE EXPRESSION BOOLEAN
     B ::= ’0’ | ’1’
     V ::= ’a’ | ’b’ | ’c’ | ’d’
     E ::= B | V
@@ -74,10 +75,12 @@ WHILEb- -. *)
     T ::= F T’
     T’ ::= ’.’ F T’ | ε
     F ::= ’!’ F | E | ’(’ ET ’)'
+
+    // PARTIE STATEMENT
     S' ::= ; M | ε
     S ::= V := ET
-        | i ’(’ V ’)’ ’{’ M ’}’ ’{’ M ’}’  
-        | w ’(’ V ’)’ ’{’ M ’}’ | ε
+        | i ’(’ ET ’)’ ’{’ M ’}’ ’{’ M ’}’  
+        | w ’(’ ET ’)’ ’{’ M ’}’ | ε
     M ::= S S'
 
   **)
@@ -130,8 +133,8 @@ and ana_M = fun l ->
   l |> ana_S --> ana_Sp
 
 and ana_S = fun l ->
-  l |> (terminal 'i' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}' --> terminal '{' --> ana_M --> terminal '}')
-  -| ( terminal 'w' --> terminal '(' --> ana_V --> terminal ')' --> terminal '{' --> ana_M --> terminal '}')
+  l |> (terminal 'i' --> terminal '(' --> ana_ET --> terminal ')' --> terminal '{' --> ana_M --> terminal '}' --> terminal '{' --> ana_M --> terminal '}')
+  -| ( terminal 'w' --> terminal '(' --> ana_ET --> terminal ')' --> terminal '{' --> ana_M --> terminal '}')
   -| (ana_V --> terminal ':' --> terminal '=' --> ana_ET)
   -| (epsilon);;
 
@@ -204,24 +207,29 @@ and rana_S = fun l ->
                    terminal ':' --> terminal '=' -+>
                    rana_ET ++> fun y -> epsilon_res (Assign (x,y)))
        +| (terminal 'i' -->
-             terminal '(' -+> rana_V ++> fun x -> terminal ')' -->
+             terminal '(' -+> rana_ET ++> fun x -> terminal ')' -->
              terminal '{' -+> rana_M ++> fun y -> terminal '}' -->
              terminal '{' -+> rana_M ++> fun z -> terminal '}' -+> epsilon_res (If(x,y,z)))
        +| (terminal 'w' -->
-             terminal '(' -+> rana_V ++> fun x -> terminal ')' -->
+             terminal '(' -+> rana_ET ++> fun x -> terminal ')' -->
              terminal '{' -+> rana_M ++> fun y -> terminal '}' -+> epsilon_res (While (x,y)))
   +| (epsilon_res Skip);;
 
   (* TEST GRAMMAIRE *)
 
-  rana_M (list_of_string "a:=(a+b)");;
+  rana_M (list_of_string "a:=1;w(a){}");;
 
-  let _ = assert (rana_M (list_of_string "a:=1;w(a){}" ) = (Seq (Assign (A, Bexp true), While (A, Skip)), []));;
-  let _ = assert (rana_M (list_of_string "a:=1;i(a){b:=1}{b:=0}") = (Seq (Assign (A, Bexp true), If (A, Assign (B, Bexp true), Assign (B, Bexp false))), []));;
-  let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){b:=0}{b:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (A, If (B, Assign (B, Bexp false), Assign (B, Bexp true))))), []));;
-  let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}{a:=0;a:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (A, If (B, Assign (C, Bexp false), Seq (Assign (A, Bexp false), Assign (A, Bexp true)))))), []));;
-  let _ = assert (rana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}{i(c){a:=b}{a:=c}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), Seq (Assign (C, Bexp false), If (B, Assign (C, Bexp true), If (C, Assign (A, Vexp B), Assign (A, Vexp C)))))), []));;
-  let _ = assert (rana_M (list_of_string "i(a){d:=1}{;;;}") = (If (A, Assign (D, Bexp true), Seq (Skip, Seq (Skip, Seq (Skip, Skip)))), [])) ;;
+  let _ = assert (rana_M (list_of_string "a:=1;w(a){}" ) = (Seq (Assign (A, Bexp true), While (Vexp A, Skip)), []));;
+  
+  let _ = assert (rana_M (list_of_string "a:=1;i(a){b:=1}{b:=0}") = (Seq (Assign (A, Bexp true), If (Vexp A, Assign (B, Bexp true), Assign (B, Bexp false))), []));;
+  
+  let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){b:=0}{b:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (Vexp A, If (Vexp B, Assign (B, Bexp false), Assign (B, Bexp true))))), []));;
+  
+  let _ = assert (rana_M (list_of_string "a:=1;b:=0;w(a){i(b){c:=0}{a:=0;a:=1}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), While (Vexp A, If (Vexp B, Assign (C, Bexp false), Seq (Assign (A, Bexp false), Assign (A, Bexp true)))))), []));;
+  
+  let _ = assert (rana_M (list_of_string "a:=1;b:=0;c:=0;i(b){c:=1}{i(c){a:=b}{a:=c}}") = (Seq (Assign (A, Bexp true), Seq (Assign (B, Bexp false), Seq (Assign (C, Bexp false), If (Vexp B, Assign (C, Bexp true), If (Vexp C, Assign (A, Vexp B), Assign (A, Vexp C)))))), []));;
+  
+  let _ = assert (rana_M (list_of_string "i(a){d:=1}{;;;}") = (If (Vexp A, Assign (D, Bexp true), Seq (Skip, Seq (Skip, Seq (Skip, Skip)))), [])) ;;
 
 
 (*** PARTIE PARTIE ***)
@@ -246,4 +254,4 @@ let parse_from_string (s:string) : stmt =
   let (p, _) = rana_M (clear l) in
   p;;
 
-parse_from_file "./Projet-PF-LT/test.txt";;
+parse_from_file "./test.txt";;
