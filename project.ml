@@ -10,7 +10,7 @@
 mis par la description ci-dessus. *)
 type var = A | B | C | D ;;
 
-type exp = Vexp of var | Bexp of bool | Bnot of exp | Band of exp * exp | Bor of exp * exp;;
+type exp = Vexp of string | Bexp of bool | Bnot of exp | Band of exp * exp | Bor of exp * exp;;
 
 type stmt =
   | Skip
