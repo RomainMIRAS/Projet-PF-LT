@@ -315,8 +315,7 @@ let rec evalB expression state : bool =
                   | A -> state.a
                   | B -> state.b
                   | C -> state.c
-                  | D -> state.d
-                  | _ -> failwith "Erreur evalB")
+                  | D -> state.d)
   | Bnot e -> not (evalB e state)
   | Band (e1, e2) -> (evalB e1 state) && (evalB e2 state)
   | Bor (e1, e2) -> (evalB e1 state) || (evalB e2 state);;
